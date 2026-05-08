@@ -1,22 +1,27 @@
-// Minimal Bun + Hono + Arcis app. One install, one middleware line,
-// twenty-plus attack vectors blocked. Run with `bun start`, then fire
-// `bun run attack` in another shell to see Arcis at work.
+// Minimal Bun + Hono + Arcis app. The `arcisHono` adapter provides rate
+// limiting, security headers, and bot protection at the Hono middleware
+// layer. Input sanitization (XSS, SQLi, NoSQL, path traversal, command
+// injection, SSTI, XXE) is not currently included in this adapter; for
+// boundary input sanitization use the Express, FastAPI, Gin, or NestJS
+// example. Run with `bun start`, then fire `bun run attack` in another
+// shell to see the rate-limit and headers behavior.
 
 import { Hono } from 'hono';
 import { arcisHono } from '@arcis/node/bun';
 
 const app = new Hono();
 
-// block:true returns 403 on detected attacks. The default is sanitize
-// (silently strip + observe), which is safer to roll out without
-// breaking existing clients. We use block here so the demo is visible.
-app.use(arcisHono({ block: true } as never));
+// arcisHono returns Hono middleware: a low-default rate limiter (100
+// req/60s in-memory), security headers (CSP, HSTS, X-Frame-Options,
+// referrer policy, etc.), and opt-in bot protection. Tighten the limit
+// to make the demo visible.
+app.use(arcisHono({ rateLimit: { max: 5, windowMs: 60_000 } }));
 
 app.get('/', (c) =>
-  c.json({ ok: true, message: 'Arcis is live. Try /api/echo with an attack payload.' })
+  c.json({ ok: true, message: 'Arcis is live. Try /api/echo or fire bun run attack.' })
 );
 
-app.get('/api/echo', (c) => c.json({ query: Object.fromEntries(c.req.queries() as never) }));
+app.get('/api/echo', (c) => c.json({ query: Object.fromEntries(c.req.queries()) }));
 
 app.post('/api/echo', async (c) => {
   const body = await c.req.json();
