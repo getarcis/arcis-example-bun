@@ -1,0 +1,21 @@
+version: 2
+# Monthly grouped dep updates. Bun's lockfile is `bun.lockb`; Dependabot
+# uses the `npm` ecosystem to read `package.json` directly.
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+    groups:
+      all-deps:
+        patterns: ["*"]
+    labels:
+      - dependencies
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    labels:
+      - dependencies
+      - ci
