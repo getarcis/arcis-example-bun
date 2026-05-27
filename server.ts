@@ -21,6 +21,10 @@ app.get('/', (c) =>
   c.json({ ok: true, message: 'Arcis is live. Try /api/echo or fire bun run attack.' })
 );
 
+// c.req.queries() returns a plain object (Record<string, string[]>),
+// not an iterable. Object.fromEntries() needs iterable of [key, value]
+// pairs and throws "TypeError: {} is not iterable" on the object
+// directly. Return the object as-is.
 app.get('/api/echo', (c) => c.json({ query: c.req.queries() }));
 
 app.post('/api/echo', async (c) => {
