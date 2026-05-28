@@ -19,8 +19,13 @@ let failures = 0;
 
 console.log(`\nArcis Bun + Hono adapter demo against ${BASE}\n${'-'.repeat(64)}`);
 
-// 1. Security headers are present on a 200 response.
-const probe = await fetch(`${BASE}/api/echo?q=hello`);
+// 1. Security headers are present on a 200 response. Pin a synthetic
+//    X-Forwarded-For so this probe's per-IP counter is isolated from the
+//    burst test below (and from any wait-loop curl that polled the
+//    server while it was booting).
+const probe = await fetch(`${BASE}/api/echo?q=hello`, {
+  headers: { 'x-forwarded-for': '203.0.113.1' },
+});
 const cspPresent = probe.headers.has('content-security-policy');
 const xfoPresent = probe.headers.has('x-frame-options');
 const xctoPresent = probe.headers.has('x-content-type-options');
@@ -35,10 +40,15 @@ if (cspPresent && xfoPresent && xctoPresent) {
 }
 
 // 2. Rate limit kicks in: server is configured for 5 req / 60s, so a
-//    burst of 7 should produce 200,200,200,200,200,429,429.
+//    burst of 7 should produce 200,200,200,200,200,429,429. Pin a
+//    fresh X-Forwarded-For so the burst's counter starts at zero,
+//    independent of the headers probe above and the wait-loop curl
+//    that polled the server while it was booting.
 const burst: number[] = [];
 for (let i = 0; i < 7; i += 1) {
-  const r = await fetch(`${BASE}/api/echo?q=burst-${i}`);
+  const r = await fetch(`${BASE}/api/echo?q=burst-${i}`, {
+    headers: { 'x-forwarded-for': '198.51.100.1' },
+  });
   burst.push(r.status);
 }
 const okCount = burst.filter((s) => s === 200).length;
