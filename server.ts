@@ -21,7 +21,7 @@ app.get('/', (c) =>
   c.json({ ok: true, message: 'Arcis is live. Try /api/echo or fire bun run attack.' })
 );
 
-app.get('/api/echo', (c) => c.json({ query: Object.fromEntries(c.req.queries()) }));
+app.get('/api/echo', (c) => c.json({ query: c.req.queries() }));
 
 app.post('/api/echo', async (c) => {
   const body = await c.req.json();
