@@ -1,0 +1,28 @@
+name: CI
+
+# Smoke test on every push + PR. Verifies that:
+#   1. bun install resolves the dependency tree
+#   2. server.ts + attack.ts typecheck against the installed types
+#
+# Does NOT yet boot the server + fire the attack script in CI — that
+# lives on the org backlog as a separate item.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --no-save
+      - name: Typecheck via bun's TS compiler
+        run: bun build --target bun --outdir /tmp/bun-build server.ts attack.ts

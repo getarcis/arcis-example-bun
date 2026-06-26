@@ -1,5 +1,7 @@
 # arcis-example-bun
 
+[![CI](https://github.com/getarcis/arcis-example-bun/actions/workflows/ci.yml/badge.svg)](https://github.com/getarcis/arcis-example-bun/actions/workflows/ci.yml)
+
 > Minimal Bun + Hono + Arcis demo. The `arcisHono` adapter applies rate limiting, security headers, and opt-in bot protection at the Hono middleware layer.
 
 ## What this is
